@@ -19,10 +19,12 @@ const server = http.createServer(
 const handleRequest = async (
   req: IncomingMessage
 ): Promise<ReturnType<typeof generateButton | typeof notFoundHandler>> => {
-  const params = await getParams(req);
+  const body = await parseRequestBody(req);
+  const params = new URLSearchParams(req.url?.replace(/^(.*)\?(.*)$/, "$2"));
+  const method = req.method?.toLowerCase();
 
-  if (req.method === "get" && req.url === "/generate-button") {
-    return generateButton(params);
+  if (method === "get" && req.url?.startsWith("/generate-button")) {
+    return generateButton({ callbackUrl: params.get("callbackUrl") ?? "" });
   }
 
   return notFoundHandler();
@@ -30,7 +32,7 @@ const handleRequest = async (
 
 const notFoundHandler = () => ({ result: false });
 
-const getParams = async (req: IncomingMessage): Promise<any> => {
+const parseRequestBody = async (req: IncomingMessage): Promise<any> => {
   return new Promise((resolve) => {
     let body = "";
 
@@ -39,7 +41,7 @@ const getParams = async (req: IncomingMessage): Promise<any> => {
     });
 
     req.on("end", () => {
-      resolve(body);
+      resolve(body ? JSON.parse(body) : {});
     });
   });
 };
