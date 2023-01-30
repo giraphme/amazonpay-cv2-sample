@@ -21,4 +21,3 @@ $ npm run dev
 ```bash
 $  curl -X GET 'http://localhost:4000/generate-button?callbackUrl=http://localhost:3000/checkout/amazonpay'
 ```
-
