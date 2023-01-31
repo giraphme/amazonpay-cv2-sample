@@ -15,6 +15,11 @@ const server = http.createServer(
 
     try {
       const result = await handleRequest(req);
+
+      console.log(req.method?.toUpperCase(), req.url);
+      console.log(JSON.stringify(result, null, "  "));
+      console.log();
+
       res.end(JSON.stringify(result));
     } catch {
       res.end(JSON.stringify({ result: false }));
