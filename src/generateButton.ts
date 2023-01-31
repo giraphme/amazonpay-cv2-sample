@@ -1,6 +1,5 @@
-import fs from "node:fs";
-// @ts-expect-error
-import { AmazonPayClient } from "@amazonpay/amazon-pay-api-sdk-nodejs";
+import { sign, ALGORITHM } from "./amazonPayApi";
+import crypto from "node:crypto";
 
 type Params = {
   callbackUrl: string;
@@ -11,28 +10,27 @@ type Result = {
   signature: string;
 };
 
-const privateKey = fs.readFileSync("./private.pem");
-
 export const generateButton = async ({
   callbackUrl,
 }: Params): Promise<Result> => {
-  const config = {
-    publicKeyId: process.env.AMAZON_PAY_PUBLIC_KEY_ID,
-    privateKey,
-    region: "jp",
-    sandbox: true,
-  };
-
-  const client = new AmazonPayClient(config);
-  const payload = {
+  const payload = JSON.stringify({
     webCheckoutDetails: {
       checkoutReviewReturnUrl: callbackUrl,
     },
     scopes: ["name", "email", "phoneNumber", "billingAddress"],
     chargePermissionType: "Recurring",
     storeId: process.env.AMAZON_PAY_STORE_ID,
-  };
-  const signature = client.generateButtonSignature(payload);
+  });
+  const signature = signPayload(payload);
 
-  return { payload: JSON.stringify(payload), signature };
+  return { payload, signature };
+};
+
+const signPayload = (payload: string) => {
+  const stringToSign = `${ALGORITHM}\n${crypto
+    .createHash("SHA256")
+    .update(payload)
+    .digest("hex")}`;
+
+  return sign(stringToSign);
 };

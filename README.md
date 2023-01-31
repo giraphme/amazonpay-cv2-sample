@@ -21,3 +21,9 @@ $ npm run dev
 ```bash
 $  curl -X GET 'http://localhost:4000/generate-button?callbackUrl=http://localhost:3000/checkout/amazonpay'
 ```
+
+### getCheckoutSession
+
+```bash
+curl -X GET 'http://localhost:4000/checkout-sessions?checkoutSessionId=35e3ca52-1772-4c04-a179-b3ea1a9f1eb7'
+```

@@ -18,6 +18,7 @@ const API_VERSION = "v2";
 const API_BASE_PATH = `/${API_VERSION}`;
 // ドメインが .jp である点に注意（ドキュメントでは .com になっている場合がある）
 const API_BASE_URL = `https://pay-api.amazon.jp`;
+export const ALGORITHM = "AMZN-PAY-RSASSA-PSS";
 
 export const request = async ({
   method,
@@ -65,7 +66,6 @@ type AuthorizationTokenParams = {
   headers: Record<string, string>;
 };
 
-const algorithm = "AMZN-PAY-RSASSA-PSS";
 const privateKey = fs.readFileSync("./private.pem");
 
 // https://developer.amazon.com/ja/docs/amazon-pay-api-v2/signing-requests.html
@@ -95,14 +95,14 @@ export const generateAuthorizationToken = ({
       .digest("hex"),
   ].join("\n");
 
-  const stringToSign = `${algorithm}\n${crypto
+  const stringToSign = `${ALGORITHM}\n${crypto
     .createHash("sha256")
     .update(canonicalRequest)
     .digest("hex")}`;
 
   const signature = sign(stringToSign);
 
-  return `${algorithm} ${[
+  return `${ALGORITHM} ${[
     ["PublicKeyId", process.env.AMAZON_PAY_PUBLIC_KEY_ID],
     ["SignedHeaders", signedHeaders],
     ["Signature", signature],
@@ -111,7 +111,7 @@ export const generateAuthorizationToken = ({
     .join(", ")}`;
 };
 
-const sign = (stringToSign: string): string => {
+export const sign = (stringToSign: string): string => {
   const s = crypto.createSign("RSA-SHA256").update(stringToSign);
 
   return s.sign(
