@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import { generateButton } from "./generateButton";
+import { getCheckoutSession } from "getCheckoutSession";
 
 const server = http.createServer(
   async (req: IncomingMessage, res: ServerResponse) => {
@@ -18,7 +19,13 @@ const server = http.createServer(
 
 const handleRequest = async (
   req: IncomingMessage
-): Promise<ReturnType<typeof generateButton | typeof notFoundHandler>> => {
+): Promise<
+  Awaited<
+    ReturnType<
+      typeof generateButton | typeof getCheckoutSession | typeof notFoundHandler
+    >
+  >
+> => {
   const body = await parseRequestBody(req);
   const params = new URLSearchParams(req.url?.replace(/^(.*)\?(.*)$/, "$2"));
   const method = req.method?.toLowerCase();
@@ -27,10 +34,16 @@ const handleRequest = async (
     return generateButton({ callbackUrl: params.get("callbackUrl") ?? "" });
   }
 
+  if (method === "get" && req.url?.startsWith("/checkout-sessions")) {
+    return getCheckoutSession({
+      checkoutSessionId: params.get("checkoutSessionId") ?? "",
+    });
+  }
+
   return notFoundHandler();
 };
 
-const notFoundHandler = () => ({ result: false });
+const notFoundHandler = async () => ({ result: false });
 
 const parseRequestBody = async (req: IncomingMessage): Promise<any> => {
   return new Promise((resolve) => {
