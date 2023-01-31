@@ -12,8 +12,13 @@ const server = http.createServer(
     res.setHeader("Access-Control-Allow-Methods", "*");
     res.setHeader("Access-Control-Allow-Headers", "*");
     res.setHeader("Content-Type", "application/json");
-    const result = await handleRequest(req);
-    res.end(JSON.stringify(result));
+
+    try {
+      const result = await handleRequest(req);
+      res.end(JSON.stringify(result));
+    } catch {
+      res.end(JSON.stringify({ result: false }));
+    }
   }
 );
 
